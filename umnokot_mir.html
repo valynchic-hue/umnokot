@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>УмноКот: Окружающий мир 🌍</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI', Verdana, Arial, sans-serif; background:linear-gradient(160deg,#1d2440,#3a2c55); min-height:100vh; color:#2b2b3d; display:flex; justify-content:center; padding:16px; }
+  #app { width:100%; max-width:640px; }
+  .card { background:#fffdf7; border-radius:24px; padding:28px; box-shadow:0 10px 40px rgba(0,0,0,.35); }
+  .header { text-align:center; margin-bottom:18px; }
+  .header .cat { font-size:52px; }
+  .header h1 { font-size:24px; color:#1d2440; margin-top:6px; }
+  .header .sub { font-size:15px; color:#777; margin-top:4px; }
+  .case-info { display:flex; justify-content:space-between; align-items:center; background:#eef3ff; border-radius:14px; padding:10px 16px; margin-bottom:16px; font-size:15px; }
+  .stars span { font-size:20px; }
+  .q-text { font-size:19px; font-weight:bold; line-height:1.45; margin-bottom:14px; }
+  .answers button { display:block; width:100%; padding:14px; margin-bottom:10px; font-size:17px; border:2px solid #d5d9ee; border-radius:14px; background:#fff; cursor:pointer; text-align:left; transition:.15s; color:#2b2b3d; }
+  .answers button:hover { border-color:#5b6bd6; background:#f4f6ff; }
+  .answers button.correct { border-color:#3fae5a; background:#e8f7ee; }
+  .answers button.wrong { border-color:#d65b5b; background:#fdecec; }
+  .answers button:disabled { cursor:default; }
+  .input-row { display:flex; gap:10px; }
+  .input-row input { flex:1; padding:13px; font-size:18px; border:2px solid #d5d9ee; border-radius:14px; }
+  .btn { display:inline-block; padding:13px 26px; font-size:17px; font-weight:bold; border:none; border-radius:14px; cursor:pointer; }
+  .btn-main { background:#5b6bd6; color:#fff; }
+  .btn-hint { background:#ffe9a8; color:#7a5c00; margin-top:10px; }
+  .btn-restart { background:#3fae5a; color:#fff; margin-top:14px; }
+  .hint-box, .explain-box { margin-top:14px; padding:12px 16px; border-radius:12px; font-size:15px; line-height:1.4; }
+  .hint-box { background:#fff8dd; }
+  .explain-box { background:#e8f7ee; }
+  .center { text-align:center; }
+  .big-stars { font-size:44px; letter-spacing:4px; }
+  .progress { height:8px; background:#e4e7f4; border-radius:6px; margin-bottom:16px; overflow:hidden; }
+  .progress div { height:100%; background:#5b6bd6; border-radius:6px; transition:.3s; }
+  .hidden { display:none; }
+</style>
+</head>
+<body>
+<div id="app"><div class="card">
+  <div class="header"><div class="cat">🐱‍🕵️</div><h1>УмноКот: Окружающий мир 🌍</h1><div class="sub">Дело №4 «Загадки планеты». ВПР, 4 класс — каждое прохождение с новыми заданиями!</div></div>
+  <div id="screen-q">
+    <div class="progress"><div id="prog-bar" style="width:0%"></div></div>
+    <div class="case-info"><span id="q-counter"></span><span class="stars" id="q-stars"></span></div>
+    <div class="q-text" id="q-text"></div>
+    <div class="answers" id="answers"></div>
+    <div id="input-area" class="hidden"><div class="input-row"><input type="text" id="free-input" autocomplete="off"><button class="btn btn-main" onclick="checkFree()">Ответить</button></div></div>
+    <div id="hint-box" class="hint-box hidden"></div>
+    <div id="explain-box" class="explain-box hidden"></div>
+    <div class="center"><button id="btn-hint" class="btn btn-hint" onclick="showHint()">💡 Подсказка УмноКота</button><button id="btn-next" class="btn btn-main hidden" onclick="nextQ()">Дальше →</button></div>
+  </div>
+  <div id="screen-end" class="hidden center">
+    <div style="font-size:60px;">🏆</div>
+    <div class="big-stars" id="end-stars"></div>
+    <p id="end-msg" style="font-size:18px; margin-top:14px;"></p>
+    <p style="color:#888; margin-top:8px;" id="end-detail"></p>
+    <button class="btn btn-restart" onclick="location.reload()">🔄 Пройти ещё раз</button>
+  </div>
+</div></div>
+<script>
+
+function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function pick(arr) { return arr[rnd(0, arr.length - 1)]; }
+function shuffleArray(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function mk(q, correct, wrongs, hint, ex) {
+  var seen = [String(correct)];
+  var opts = [String(correct)];
+  for (var i = 0; i < wrongs.length && opts.length < 4; i++) {
+    var s = String(wrongs[i]);
+    if (seen.indexOf(s) === -1) { seen.push(s); opts.push(s); }
+  }
+  opts = shuffleArray(opts);
+  return { q: q, options: opts, a: opts.indexOf(String(correct)), hint: hint, ex: ex };
+}
+
+var months = ["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
+var seasonOf = {"декабрь":"зима","январь":"зима","февраль":"зима","март":"весна","апрель":"весна","май":"весна","июнь":"лето","июль":"лето","август":"лето","сентябрь":"осень","октябрь":"осень","ноябрь":"осень"};
+var animals = [
+  ["кошка","млекопитающее"],["дельфин","млекопитающее"],["лиса","млекопитающее"],["крот","млекопитающее"],
+  ["воробей","птица"],["сова","птица"],["синица","птица"],["грач","птица"],
+  ["щука","рыба"],["окунь","рыба"],["карась","рыба"],
+  ["бабочка","насекомое"],["муравей","насекомое"],["пчела","насекомое"],["божья коровка","насекомое"],
+  ["крокодил","пресмыкающееся"],["черепаха","пресмыкающееся"],["ящерица","пресмыкающееся"],
+  ["лягушка","земноводное"],["жаба","земноводное"],["тритон","земноводное"]
+];
+var classes = ["млекопитающее","птица","рыба","насекомое","пресмыкающееся","земноводное"];
+var sky = [
+  ["Юпитер","планета"],["Меркурий","планета"],["Сатурн","планета"],["Марс","планета"],
+  ["Солнце","звезда"],["Полярная звезда","звезда"],
+  ["Луна","спутник Земли"],
+  ["Большая Медведица","созвездие"],["Большой Пёс","созвездие"]
+];
+var skyTypes = ["планета","звезда","спутник Земли","созвездие"];
+var continents = ["Евразия","Африка","Северная Америка","Южная Америка","Австралия","Антарктида"];
+var oceans = ["Тихий","Атлантический","Индийский","Северный Ледовитый"];
+var tools = [
+  ["термометр","измеряет температуру"],
+  ["флюгер","показывает направление ветра"],
+  ["компас","определяет стороны горизонта"],
+  ["барометр","измеряет атмосферное давление"]
+];
+
+function genHours() {
+  var n = rnd(1, 5);
+  return mk("Сколько часов в " + n + " сутках?", n * 24, [n * 24 + 12, n * 24 - 10, n * 12],
+    "1 сутки = 24 часа. Умножь.", "В одних сутках 24 часа, значит: " + n + " × 24 = " + (n * 24) + " ч.");
+}
+function genMinutes() {
+  var n = rnd(1, 4);
+  return mk("Сколько минут в " + n + " часах?", n * 60, [n * 60 + 10, n * 60 - 5, n * 100],
+    "1 час = 60 минут. Умножь.", "В одном часе 60 минут, значит: " + n + " × 60 = " + (n * 60) + " мин.");
+}
+function genWeeks() {
+  var n = rnd(1, 4);
+  return mk("Сколько дней в " + n + " неделях?", n * 7, [n * 7 + 7, n * 7 - 2, n * 30],
+    "1 неделя = 7 дней. Умножь.", "В неделе 7 дней, значит: " + n + " × 7 = " + (n * 7) + " дн.");
+}
+function genYears() {
+  var n = rnd(1, 3);
+  return mk("Сколько месяцев в " + n + " год" + (n === 1 ? "е" : "ах") + "?", n * 12, [n * 12 + 4, n * 12 - 2, n * 10],
+    "1 год = 12 месяцев. Умножь.", "В году 12 месяцев, значит: " + n + " × 12 = " + (n * 12) + " мес.");
+}
+function genNextMonth() {
+  var i = rnd(0, 11);
+  var next = months[(i + 1) % 12];
+  return mk("Какой месяц наступает после «" + months[i] + "»?", next, [months[(i + 11) % 12], months[(i + 2) % 12], months[(i + 4) % 12]],
+    "Вспомни порядок месяцев в году.", "После «" + months[i] + "» наступает «" + next + "».");
+}
+function genSeason() {
+  var m = pick(months);
+  var s = seasonOf[m];
+  return mk("К какому времени года относится месяц «" + m + "»?", s, ["зима","весна","лето","осень"].filter(function(x) { return x !== s; }),
+    "Декабрь—февраль — зима, март—май — весна, июнь—август — лето, сентябрь—ноябрь — осень.", "Месяц «" + m + "» — это " + s + ".");
+}
+function genAnimal() {
+  var item = pick(animals);
+  var wrongs = shuffleArray(classes.filter(function(c) { return c !== item[1]; })).slice(0, 3);
+  return mk("К какой группе относится " + item[0] + "?", item[1], wrongs,
+    "Подумай: есть шерсть, перья, чешуя? Сколько ног?", item[0] + " — " + item[1] + ".");
+}
+function genSky() {
+  var item = pick(sky);
+  var wrongs = shuffleArray(skyTypes.filter(function(t) { return t !== item[1]; }));
+  return mk("Что такое " + item[0] + "?", item[1], wrongs,
+    "Солнце и звёзды светят сами, планеты отражают свет, Луна — спутник, Большая Медведица — созвездие.", item[0] + " — это " + item[1] + ".");
+}
+function genContinent() {
+  var c = pick(continents);
+  var wrongs = shuffleArray(oceans).slice(0, 3);
+  return mk("Какое из перечисленного — материк?", c, wrongs,
+    "Материки — огромные участки суши, океаны — водные пространства.", c + " — материк. Остальное — океаны.");
+}
+function genTool() {
+  var item = pick(tools);
+  var wrongs = shuffleArray(tools.filter(function(t) { return t[0] !== item[0]; })).map(function(t) { return t[1]; });
+  return mk("Для чего нужен " + item[0] + "?", item[1], wrongs,
+    "Вспомни, что измеряет или показывает этот прибор.", item[0] + " — " + item[1] + ".");
+}
+var okrStatic = [
+  mk("Кто был первым космонавтом Земли?","Юрий Гагарин",["Сергей Королёв","Герман Титов","Алексей Леонов"],"12 апреля 1961 года.","Первым космонавтом стал Юрий Гагарин — полёт 12 апреля 1961 года."),
+  mk("Какой город — столица России?","Москва",["Санкт-Петербург","Казань","Новосибирск"],"Главный город страны.","Столица России — Москва."),
+  mk("Какая река — самая длинная в Европе?","Волга",["Днепр","Дон","Нева"],"Вспомни карту России.","Самая длинная река Европы — Волга, её называют «матушкой-Волгой»."),
+  mk("Какой гриб из перечисленных — съедобный?","боровик",["мухомор","бледная поганка","ложный опёнок"],"Боровик — белый гриб, царь грибов.","Боровик — съедобный белый гриб. Мухомор и бледная поганка ядовиты!"),
+  mk("Какая птица остаётся зимовать у нас?","синица",["ласточка","соловей","скворец"],"Перелётные птицы осенью улетают на юг.","Синица зимует с нами. Ласточки, соловьи и скворцы — перелётные."),
+  mk("Почему на Земле сменяются времена года?","Земля обращается вокруг Солнца",["Солнце вращается вокруг Земли","Луна закрывает Солнце","воздух меняется от ветра"],"Вспомни модель Солнечной системы.","Смена времён года — из-за обращения Земли вокруг Солнца."),
+  mk("Кто создал первую славянскую азбуку?","Кирилл и Мефодий",["Пётр Первый","Юрий Гагарин","Иван Фёдоров"],"Это было очень давно, в IX веке.","Славянскую азбуку создали братья Кирилл и Мефодий."),
+  mk("Что помогает беречь природу?","выбрасывать мусор в урну и не ломать ветки",["собирать букеты из редких цветов","кормить диких животных из рук","оставлять костёр в лесу"],"Вспомни правила юного эколога.","Мусор — в урну, ветки не ломать, редкие цветы не рвать, костёр — только под присмотром взрослых."),
+  mk("Сколько дней в феврале обычного года?","28",["30","29","31"],"Три зимних месяца.","В феврале обычного года — 28 дней, а в високосном — 29.")
+];
+
+function buildQuiz() {
+  var q = [];
+  q.push(genHours());
+  q.push(genMinutes());
+  var pickers = [genWeeks, genYears, genNextMonth, genSeason, genAnimal, genSky, genContinent, genTool];
+  shuffleArray(pickers).slice(0, 5).forEach(function(f) { q.push(f()); });
+  shuffleArray(okrStatic).slice(0, 6).forEach(function(s) { q.push(s); });
+  return shuffleArray(q);
+}
+const QUESTIONS = buildQuiz();
+
+let idx = 0, score = 0, usedHint = [], locked = false;
+
+function render() {
+  locked = false;
+  const q = QUESTIONS[idx];
+  document.getElementById('prog-bar').style.width = (idx / QUESTIONS.length * 100) + '%';
+  document.getElementById('q-counter').textContent = 'Задание ' + (idx + 1) + ' из ' + QUESTIONS.length;
+  document.getElementById('q-stars').textContent = '⭐'.repeat(score);
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('hint-box').classList.add('hidden');
+  document.getElementById('explain-box').classList.add('hidden');
+  document.getElementById('btn-next').classList.add('hidden');
+  document.getElementById('btn-hint').classList.remove('hidden');
+  const ans = document.getElementById('answers');
+  const inp = document.getElementById('input-area');
+  ans.innerHTML = ''; ans.classList.add('hidden'); inp.classList.add('hidden');
+  if (q.options) {
+    ans.classList.remove('hidden');
+    q.options.forEach((o, i) => {
+      const b = document.createElement('button');
+      b.textContent = o;
+      b.onclick = () => check(i, b);
+      ans.appendChild(b);
+    });
+  } else {
+    inp.classList.remove('hidden');
+    document.getElementById('free-input').value = '';
+    setTimeout(() => document.getElementById('free-input').focus(), 50);
+  }
+}
+function normalize(s) { return s.toString().trim().toLowerCase().replace(/ё/g,'е').replace(/\s+/g,' '); }
+function check(i, btn) {
+  if (locked) return; locked = true;
+  const q = QUESTIONS[idx];
+  const buttons = document.querySelectorAll('#answers button');
+  buttons.forEach((b, j) => { b.disabled = true; if (j === q.a) b.classList.add('correct'); });
+  if (i === q.a) { score++; document.getElementById('q-stars').textContent = '⭐'.repeat(score); }
+  else btn.classList.add('wrong');
+  finish(i === q.a);
+}
+function checkFree() {
+  if (locked) return; locked = true;
+  const q = QUESTIONS[idx];
+  const val = document.getElementById('free-input').value;
+  const ok = Array.isArray(q.a) ? q.a.map(normalize).includes(normalize(val)) : normalize(val) === normalize(q.a);
+  const inp = document.getElementById('free-input');
+  inp.style.borderColor = ok ? '#3fae5a' : '#d65b5b';
+  if (ok) { score++; document.getElementById('q-stars').textContent = '⭐'.repeat(score); }
+  if (!ok && q.correctText) {
+    const d = document.createElement('div'); d.style.marginTop='8px'; d.textContent = 'Правильный ответ: ' + q.correctText;
+    document.getElementById('answers').appendChild(d);
+  }
+  finish(ok);
+}
+function finish(ok) {
+  const q = QUESTIONS[idx];
+  document.getElementById('btn-hint').classList.add('hidden');
+  const ex = document.getElementById('explain-box');
+  ex.textContent = (ok ? '✅ Верно! ' : '❌ Не верно. ') + (q.ex || '');
+  ex.classList.remove('hidden');
+  document.getElementById('btn-next').classList.remove('hidden');
+}
+function showHint() {
+  const q = QUESTIONS[idx];
+  const h = document.getElementById('hint-box');
+  h.textContent = '🐱 УмноКот шепчет: ' + q.hint;
+  h.classList.remove('hidden');
+  document.getElementById('btn-hint').classList.add('hidden');
+  usedHint[idx] = true;
+}
+function nextQ() {
+  idx++;
+  if (idx < QUESTIONS.length) render();
+  else {
+    document.getElementById('screen-q').classList.add('hidden');
+    document.getElementById('screen-end').classList.remove('hidden');
+    document.getElementById('end-stars').textContent = '⭐'.repeat(score) + '☆'.repeat(QUESTIONS.length - score);
+    let msg;
+    if (score === QUESTIONS.length) msg = 'Феноменально! Все звёзды твои! 🎉';
+    else if (score >= QUESTIONS.length - 2) msg = 'Отличный сыщик! ВПР тебе по плечу!';
+    else if (score >= QUESTIONS.length / 2) msg = 'Хорошее начало! Прорешай ещё раз — и будет блеск!';
+    else msg = 'УмноКот верит в тебя! Загляни в объяснения и попробуй снова.';
+    document.getElementById('end-msg').textContent = msg;
+    document.getElementById('end-detail').textContent = 'Результат: ' + score + ' из ' + QUESTIONS.length + ' звёздочек';
+  }
+}
+render();
+</script>
+</body>
+</html>

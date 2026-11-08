@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>УмноКот — Главное меню</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(160deg, #fdf6e3 0%, #ffe8cc 100%); margin: 0; padding: 30px 15px; color: #333; min-height: 100vh; box-sizing: border-box; }
+    .wrap { max-width: 700px; margin: auto; }
+    h1 { text-align: center; color: #2c3e50; font-size: 30px; margin: 10px 0 6px; }
+    .subtitle { text-align: center; color: #7f6a4f; margin-bottom: 30px; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    @media (max-width: 520px) { .grid { grid-template-columns: 1fr; } }
+    .card { display: block; background: white; border-radius: 16px; padding: 24px 20px; text-decoration: none; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: transform 0.15s, box-shadow 0.15s; border: 3px solid transparent; }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.14); }
+    .card .icon { font-size: 44px; }
+    .card .title { font-size: 19px; font-weight: bold; margin: 10px 0 6px; color: #2c3e50; }
+    .card .desc { font-size: 14px; color: #7f8c8d; line-height: 1.4; }
+    .card.math { border-top: 5px solid #3498db; }
+    .card.rus  { border-top: 5px solid #e74c3c; }
+    .card.lit  { border-top: 5px solid #9b59b6; }
+    .card.mir  { border-top: 5px solid #27ae60; }
+    .note { text-align: center; color: #95a5a6; font-size: 13px; margin-top: 26px; }
+    .cat { text-align: center; font-size: 60px; margin-bottom: -6px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="cat">🐱‍🕵️</div>
+    <h1>УмноКот</h1>
+    <p class="subtitle">Выбери дело, детектив! ВПР, 4 класс — каждое расследование начинается здесь.</p>
+
+    <div class="grid">
+      <a class="card math" href="umnokot_math.html">
+        <div class="icon">🔍</div>
+        <div class="title">Математика</div>
+        <div class="desc">Дело №1 «Цифровые улики» — вычисления, задачи, величины, геометрия.</div>
+      </a>
+      <a class="card rus" href="umnokot_rus.html">
+        <div class="icon">✍️</div>
+        <div class="title">Русский язык</div>
+        <div class="desc">Дело №2 «Тайна великого и могучего» — орфограммы, грамматика, текст.</div>
+      </a>
+      <a class="card lit" href="umnokot_lit.html">
+        <div class="icon">📚</div>
+        <div class="title">Литературное чтение</div>
+        <div class="desc">Дело №3 «Следы на страницах» — произведения, герои, жанры.</div>
+      </a>
+      <a class="card mir" href="umnokot_mir.html">
+        <div class="icon">🌍</div>
+        <div class="title">Окружающий мир</div>
+        <div class="desc">Дело №4 «Загадки планеты» — природа, космос, время, приборы.</div>
+      </a>
+    </div>
+
+    <p class="note">Задания меняются при каждом запуске. Удачи, сыщик! 🐾</p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>УмноКот: Математика (ВПР 4 класс)</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f4f8; margin: 0; padding: 20px; color: #333; }
+    .container { max-width: 600px; margin: auto; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 30px; }
+    h1 { text-align: center; color: #2c3e50; font-size: 24px; margin-bottom: 10px; }
+    .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 30px; }
+    #game-area, #end-screen { display: none; }
+    #start-screen { text-align: center; }
+    button { background: #3498db; color: white; border: none; padding: 14px 28px; font-size: 18px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+    button:hover { background: #2980b9; }
+    button.secondary { background: #95a5a6; }
+    button.secondary:hover { background: #7f8c8d; }
+    #question-text { font-size: 20px; line-height: 1.4; margin: 20px 0; color: #2c3e50; }
+    .options { display: flex; flex-direction: column; gap: 12px; }
+    .option-btn { text-align: left; padding-left: 18px; font-size: 16px; background: #ecf0f1; color: #2c3e50; border: none; border-radius: 6px; padding: 12px; cursor: pointer; }
+    .option-btn:hover { background: #dfe6e9; }
+    .option-btn:disabled { opacity: 0.6; cursor: default; }
+    #feedback { margin-top: 15px; font-weight: bold; min-height: 22px; }
+    .correct { color: #27ae60; }
+    .wrong { color: #c0392b; }
+    #score-bar { margin-top: 20px; display: flex; justify-content: space-between; align-items: center; }
+    #stars { font-size: 24px; }
+    #hint-btn { margin-top: 15px; background: #f39c12; }
+    #hint-btn:hover { background: #d35400; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🐱 УмноКот: Математика (ВПР 4 класс)</h1>
+    <p class="subtitle">Расследуй математические дела: вычисления, задачи, величины, геометрия — как в ВПР!</p>
+
+    <div id="start-screen">
+      <p>Готов к расследованию? Каждый раз — новые дела!</p>
+      <button onclick="startGame()">Начать новое расследование</button>
+    </div>
+
+    <div id="game-area">
+      <div id="question-text"></div>
+      <div class="options" id="options-container"></div>
+      <div id="feedback"></div>
+      <div id="score-bar">
+        <span>Звёзды: <span id="stars">☆☆☆</span></span>
+        <span>Вопрос <span id="q-num">1</span>/14</span>
+      </div>
+      <button id="hint-btn" onclick="showHint()">Подсказка УмноКота 💡</button>
+      <button class="secondary" onclick="skipQuestion()" style="margin-top:10px;">Пропустить вопрос</button>
+    </div>
+
+    <div id="end-screen">
+      <h2>🎉 Расследование завершено!</h2>
+      <p id="final-result"></p>
+      <p>Использовано подсказок: <span id="hints-used">0</span></p>
+      <button onclick="startGame()">Новое расследование 🔁</button>
+    </div>
+  </div>
+
+  <script>
+    function rnd(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const t = array[i];
+        array[i] = array[j];
+        array[j] = t;
+      }
+      return array;
+    }
+
+    function makeQ(text, correct, wrongs, hint) {
+      const options = shuffleArray([String(correct)].concat(wrongs.map(String)));
+      return { q: text, options: options, answer: options.indexOf(String(correct)), hint: hint };
+    }
+
+    const generators = [
+      function () {
+        const a = rnd(40, 99);
+        const b = rnd(11, a - 10);
+        return makeQ("Вычисли: " + a + " − " + b, a - b,
+          [a - b + 1, a - b - 1, a - b + 10],
+          "Вычитаем по разрядам: единицы из единиц, десятки из десятков. Ответ: " + (a - b) + ".");
+      },
+      function () {
+        const a = rnd(2, 9), b = rnd(2, 9), c = rnd(1, 9), d = rnd(2, 9);
+        const val = a + b * (c + d);
+        return makeQ("Найди значение выражения: " + a + " + " + b + " · (" + c + " + " + d + ")", val,
+          [a * b * (c + d), a + b + c + d, val - b],
+          "Сначала скобки: " + c + " + " + d + " = " + (c + d) + ". Потом умножение: " + b + " · " + (c + d) + " = " + (b * (c + d)) + ". И сложение: " + a + " + " + (b * (c + d)) + " = " + val + ".");
+      },
+      function () {
+        const k1 = rnd(3, 6), m1 = rnd(5, 9), k2 = rnd(2, 4), m2 = rnd(4, 8);
+        const total = k1 * m1 + k2 * m2;
+        return makeQ("В магазин привезли " + k1 + " коробки по " + m1 + " кг конфет и " + k2 + " коробки по " + m2 + " кг печенья. Сколько всего килограммов привезли?", total + " кг",
+          [(total + 2) + " кг", (total - 3) + " кг", (k1 * m1 * k2 * m2) + " кг"],
+          "Конфеты: " + k1 + " × " + m1 + " = " + (k1 * m1) + " кг. Печенье: " + k2 + " × " + m2 + " = " + (k2 * m2) + " кг. Всего: " + (k1 * m1) + " + " + (k2 * m2) + " = " + total + " кг.");
+      },
+      function () {
+        const h = rnd(2, 4);
+        const m = [5, 10, 15, 20, 25, 30, 40, 45][rnd(0, 7)];
+        const total = h * 60 + m;
+        return makeQ("Сколько минут в " + h + " часах " + m + " минутах?", total + " мин",
+          [(total + 10) + " мин", (h * 60) + " мин", (total + 60) + " мин"],
+          "1 час = 60 минут. " + h + " часа = " + (h * 60) + " минут. Плюс " + m + " минут: итого " + total + " минут.");
+      },
+      function () {
+        const l = rnd(6, 15), w = rnd(3, 9);
+        const p = (l + w) * 2;
+        return makeQ("Длина прямоугольника " + l + " см, ширина " + w + " см. Чему равен периметр?", p + " см",
+          [(l * w) + " см", (l + w) + " см", (p + 4) + " см"],
+          "Периметр = (длина + ширина) × 2. (" + l + " + " + w + ") × 2 = " + p + " см.");
+      },
+      function () {
+        const l = rnd(4, 12), w = rnd(3, 9);
+        const s = l * w;
+        return makeQ("Площадь прямоугольника " + s + " см², длина " + l + " см. Чему равна ширина?", w + " см",
+          [(w + 1) + " см", (s - l) + " см", (w - 1) + " см"],
+          "Ширина = площадь : длина. " + s + " : " + l + " = " + w + " см.");
+      },
+      function () {
+        const div = rnd(2, 9), quot = rnd(3, 9);
+        const dividend = div * quot;
+        return makeQ("Какое число нужно вставить, чтобы равенство стало верным: " + dividend + " : □ = " + quot + "?", div,
+          [div + 10, dividend, quot],
+          "Чтобы найти делитель, нужно делимое разделить на частное: " + dividend + " : " + quot + " = " + div + ".");
+      },
+      function () {
+        const a = rnd(50, 99), b = rnd(11, 40);
+        return makeQ("На сколько " + a + " больше, чем " + b + "?", "на " + (a - b),
+          ["на " + (a - b + 5), "на " + (a + b), "на " + (a - b - 2)],
+          "Вычитаем: " + a + " − " + b + " = " + (a - b) + ".");
+      },
+      function () {
+        const b = rnd(2, 9), times = rnd(2, 9);
+        const a = b * times;
+        return makeQ("Во сколько раз " + a + " больше, чем " + b + "?", "в " + times + " раз",
+          ["в " + (times + 1) + " раз", "в " + (a - b) + " раз", "в " + (times - 1) + " раз"],
+          "Делим: " + a + " : " + b + " = " + times + ". Значит, в " + times + " раз.");
+      },
+      function () {
+        const total = rnd(9, 20) * 10, price = rnd(5, 25), n = rnd(2, 5);
+        const rest = total - price * n;
+        return makeQ("У Пети было " + total + " рублей. Он купил " + n + " ручки по " + price + " рублей. Сколько рублей у него осталось?", rest + " руб",
+          [(rest + 5) + " руб", (total - price) + " руб", (rest - 3) + " руб"],
+          "Стоимость ручек: " + n + " × " + price + " = " + (price * n) + " руб. Осталось: " + total + " − " + (price * n) + " = " + rest + " руб.");
+      },
+      function () {
+        const price = rnd(9, 30), n1 = rnd(3, 6), n2 = rnd(2, 8);
+        const cost = price * n2;
+        return makeQ("За " + n1 + " одинаковых пирожка заплатили " + (price * n1) + " рублей. Сколько стоят " + n2 + " таких пирожков?", cost + " руб",
+          [(cost + 10) + " руб", (cost - price) + " руб", (price * n2 + 5) + " руб"],
+          "Цена одного: " + (price * n1) + " : " + n1 + " = " + price + " руб. " + n2 + " пирожков: " + price + " × " + n2 + " = " + cost + " руб.");
+      },
+      function () {
+        const step = rnd(3, 15), start = rnd(2, 20);
+        const s0 = start, s1 = start + step, s2 = start + 2 * step, s3 = start + 3 * step, s4 = start + 4 * step;
+        return makeQ("Определи, какое число пропущено: " + s0 + ", " + s1 + ", " + s2 + ", □, " + s4, s3,
+          [s3 + 1, s3 - step, s3 + step],
+          "Числа увеличиваются на " + step + ": " + s0 + " → " + s1 + " → " + s2 + " → " + s3 + " → " + s4 + ".");
+      }
+    ];
+
+    const staticBank = [
+      makeQ("Какую часть метра составляет 25 см?", "четверть", ["половину", "треть", "пятую часть"],
+        "1 м = 100 см. 100 : 25 = 4. Значит, это четверть метра."),
+      makeQ("Выбери верное равенство:", "4 м = 40 дм", ["4 м = 4 дм", "4 м = 400 дм", "4 м = 400 см"],
+        "1 м = 10 дм, значит 4 м = 40 дм."),
+      makeQ("Сколько сантиметров в 3 метрах?", "300 см", ["30 см", "3000 см", "30000 см"],
+        "1 м = 100 см, значит 3 м = 300 см."),
+      makeQ("Сколько килограммов в 2 тоннах?", "2000 кг", ["200 кг", "20 кг", "20000 кг"],
+        "1 т = 1000 кг, значит 2 т = 2000 кг."),
+      makeQ("Что больше: 5 дм или 40 см?", "5 дм", ["40 см", "они равны", "нельзя сравнить"],
+        "5 дм = 50 см, а это больше, чем 40 см."),
+      makeQ("Сколько секунд в 2 минутах?", "120 сек", ["100 сек", "200 сек", "60 сек"],
+        "1 минута = 60 секунд, значит 2 минуты = 120 секунд."),
+      makeQ("Какая доля суток составляет 6 часов?", "четверть", ["половина", "треть", "шестая часть"],
+        "Сутки = 24 часа. 24 : 6 = 4, значит это четверть суток."),
+      makeQ("Какое число пропущено: 1, 2, 4, 8, □, 32?", "16", ["12", "14", "18"],
+        "Каждое число удваивается: 1 → 2 → 4 → 8 → 16 → 32.")
+    ];
+
+    function buildQuiz() {
+      const pool = [];
+      let i;
+      for (i = 0; i < staticBank.length; i++) pool.push(staticBank[i]);
+      for (i = 0; i < generators.length; i++) pool.push(generators[i]());
+      return shuffleArray(pool).slice(0, 14);
+    }
+
+    let currentQIndex = 0;
+    let score = 0;
+    let hintsUsed = 0;
+    let selectedQuestions = [];
+    let answered = false;
+
+    function startGame() {
+      selectedQuestions = buildQuiz();
+      currentQIndex = 0;
+      score = 0;
+      hintsUsed = 0;
+      answered = false;
+
+      document.getElementById('start-screen').style.display = 'none';
+      document.getElementById('end-screen').style.display = 'none';
+      document.getElementById('game-area').style.display = 'block';
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      const q = selectedQuestions[currentQIndex];
+      answered = false;
+      document.getElementById('question-text').innerText = q.q;
+
+      const container = document.getElementById('options-container');
+      container.innerHTML = '';
+
+      const shuffledOptions = shuffleArray(q.options.map(function (opt, idx) {
+        return { text: opt, index: idx };
+      }));
+
+      shuffledOptions.forEach(function (opt) {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerText = opt.text;
+        btn.onclick = function () { checkAnswer(opt.index === q.answer, q, btn); };
+        container.appendChild(btn);
+      });
+
+      document.getElementById('feedback').innerText = '';
+      document.getElementById('q-num').innerText = currentQIndex + 1;
+      updateStars();
+    }
+
+    function checkAnswer(isCorrect, q, clickedBtn) {
+      if (answered) return;
+      answered = true;
+
+      const feedback = document.getElementById('feedback');
+      if (isCorrect) {
+        feedback.innerText = '✅ Правильно! Молодец, сыщик!';
+        feedback.className = 'correct';
+        score++;
+        if (clickedBtn) clickedBtn.style.background = '#d4efdf';
+      } else {
+        feedback.innerText = '❌ Ошибка. Правильный ответ: ' + q.options[q.answer];
+        feedback.className = 'wrong';
+        if (clickedBtn) clickedBtn.style.background = '#fadbd8';
+      }
+
+      const buttons = document.querySelectorAll('.option-btn');
+      for (let i = 0; i < buttons.length; i++) buttons[i].disabled = true;
+      updateStars();
+
+      setTimeout(function () {
+        currentQIndex++;
+        if (currentQIndex >= selectedQuestions.length) endGame();
+        else loadQuestion();
+      }, 1500);
+    }
+
+    function showHint() {
+      const q = selectedQuestions[currentQIndex];
+      alert(q.hint);
+      hintsUsed++;
+    }
+
+    function skipQuestion() {
+      currentQIndex++;
+      if (currentQIndex >= selectedQuestions.length) endGame();
+      else loadQuestion();
+    }
+
+    function updateStars() {
+      let stars = '';
+      for (let i = 0; i < 3; i++) {
+        if (score > i) stars += '⭐';
+        else stars += '☆';
+      }
+      document.getElementById('stars').innerText = stars;
+    }
+
+    function endGame() {
+      document.getElementById('game-area').style.display = 'none';
+      document.getElementById('end-screen').style.display = 'block';
+
+      const resultText = document.getElementById('final-result');
+      let title;
+      if (score >= 12) title = "Главный математический детектив!";
+      else if (score >= 8) title = "Опытный счётчик";
+      else title = "Юный помощник УмноКота";
+      resultText.innerText = title + " Ты набрал " + score + " из 14.";
+      document.getElementById('hints-used').innerText = hintsUsed;
+    }
+  </script>
+</body>
+</html>
