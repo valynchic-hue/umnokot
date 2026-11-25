@@ -35,10 +35,7 @@
   .progress { height:8px; background:#e4e7f4; border-radius:6px; margin-bottom:16px; overflow:hidden; }
   .progress div { height:100%; background:#5b6bd6; border-radius:6px; transition:.3s; }
   .hidden { display:none; }
-  .home-btn { position:fixed; top:18px; left:18px; z-index:999; width:48px; height:48px; border-radius:50%;
-              background:linear-gradient(135deg,#7b2fbf,#a450e0); color:#fff; font-size:22px; text-decoration:none;
-              display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(123,47,191,.4);
-              transition:transform .15s, box-shadow .15s; }
+  .home-btn { position:fixed; top:18px; left:18px; z-index:999; width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,#7b2fbf,#a450e0); color:#fff; font-size:22px; text-decoration:none; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(123,47,191,.4); transition:.15s; }
   .home-btn:hover { transform:translateY(-3px); box-shadow:0 8px 20px rgba(123,47,191,.55); }
 </style>
 </head>
@@ -216,7 +213,7 @@ function finish(ok) {
   const q = QUESTIONS[idx];
   document.getElementById('btn-hint').classList.add('hidden');
   const ex = document.getElementById('explain-box');
-  ex.textContent = (ok ? '✅ Верно! ' : '❌ Не верно. ') + (q.ex || '');
+  ex.textContent = (ok ? '✅ Верно! ' : '❌ Неверно. ') + (q.ex || '');
   ex.classList.remove('hidden');
   document.getElementById('btn-next').classList.remove('hidden');
 }
