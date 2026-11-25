@@ -1,35 +1,42 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <title>УмнОКот: Математика (ВПР 4 класс)</title>
-  <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f4f8; margin: 0; padding: 20px; color: #333; }
-    .container { max-width: 600px; margin: auto; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 30px; }
-    h1 { text-align: center; color: #2c3e50; font-size: 24px; margin-bottom: 10px; }
-    .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 30px; }
-    #game-area, #end-screen { display: none; }
-    #start-screen { text-align: center; }
-    button { background: #3498db; color: white; border: none; padding: 14px 28px; font-size: 18px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
-    button:hover { background: #2980b9; }
-    button.secondary { background: #95a5a6; }
-    button.secondary:hover { background: #7f8c8d; }
-    #question-text { font-size: 20px; line-height: 1.4; margin: 20px 0; color: #2c3e50; }
-    .options { display: flex; flex-direction: column; gap: 12px; }
-    .option-btn { text-align: left; padding-left: 18px; font-size: 16px; background: #ecf0f1; color: #2c3e50; border: none; border-radius: 6px; padding: 12px; cursor: pointer; }
-    .option-btn:hover { background: #dfe6e9; }
-    .option-btn:disabled { opacity: 0.6; cursor: default; }
-    #feedback { margin-top: 15px; font-weight: bold; min-height: 22px; }
-    .correct { color: #27ae60; }
-    .wrong { color: #c0392b; }
-    #score-bar { margin-top: 20px; display: flex; justify-content: space-between; align-items: center; }
-    #stars { font-size: 24px; }
-    #hint-btn { margin-top: 15px; background: #f39c12; }
-    #hint-btn:hover { background: #d35400; }
-    .hidden { display: none; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>УмнОКот: Математика (ВПР 4 класс)</title>
+<style>
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f4f8; margin: 0; padding: 20px; color: #333; }
+  .container { max-width: 600px; margin: auto; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 30px; }
+  h1 { text-align: center; color: #2c3e50; font-size: 24px; margin-bottom: 10px; }
+  .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 30px; }
+  #game-area, #end-screen { display: none; }
+  #start-screen { text-align: center; }
+  button { background: #3498db; color: white; border: none; padding: 14px 28px; font-size: 18px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+  button:hover { background: #2980b9; }
+  button.secondary { background: #95a5a6; }
+  button.secondary:hover { background: #7f8c8d; }
+  #question-text { font-size: 20px; line-height: 1.4; margin: 20px 0; color: #2c3e50; }
+  .options { display: flex; flex-direction: column; gap: 12px; }
+  .option-btn { text-align: left; padding-left: 18px; font-size: 16px; background: #ecf0f1; color: #2c3e50; border: none; border-radius: 6px; padding: 12px; cursor: pointer; }
+  .option-btn:hover { background: #dfe6e9; }
+  .option-btn:disabled { opacity: 0.6; cursor: default; }
+  #feedback { margin-top: 15px; font-weight: bold; min-height: 22px; }
+  .correct { color: #27ae60; }
+  .wrong { color: #c0392b; }
+  #score-bar { margin-top: 20px; display: flex; justify-content: space-between; align-items: center; }
+  #stars { font-size: 24px; }
+  #hint-btn { margin-top: 15px; background: #f39c12; }
+  #hint-btn:hover { background: #d35400; }
+  .hidden { display: none; }
+  .home-btn { position: fixed; top: 18px; left: 18px; z-index: 999; width: 48px; height: 48px; border-radius: 50%;
+              background: linear-gradient(135deg, #7b2fbf, #a450e0); color: #fff; font-size: 22px; text-decoration: none;
+              display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(123, 47, 191, 0.4);
+              transition: transform 0.15s, box-shadow 0.15s; }
+  .home-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(123, 47, 191, 0.55); }
+</style>
 </head>
 <body>
+  <a class="home-btn" href="index.html" title="На главную — выбрать другое дело">🏠</a>
   <div class="container">
     <h1>🐱 УмнОКот: Математика (ВПР 4 класс)</h1>
     <p class="subtitle">Расследуй математические дела: вычисления, задачи, величины, геометрия — как в ВПР!</p>
@@ -74,8 +81,24 @@
       return array;
     }
 
+    function plural(n, one, few, many) {
+      const m10 = n % 10, m100 = n % 100;
+      if (m10 === 1 && m100 !== 11) return one;
+      if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+      return many;
+    }
+
     function makeQ(text, correct, wrongs, hint) {
-      const options = shuffleArray([String(correct)].concat(wrongs.map(String)));
+      const opts = [String(correct)];
+      for (let i = 0; i < wrongs.length && opts.length < 4; i++) {
+        if (opts.indexOf(String(wrongs[i])) === -1) opts.push(String(wrongs[i]));
+      }
+      let filler = 1;
+      while (opts.length < 4) {
+        opts.push(String(Number(correct) + filler * 7) || 'нет ответа');
+        filler++;
+      }
+      const options = shuffleArray(opts);
       return { q: text, options: options, answer: options.indexOf(String(correct)), hint: hint };
     }
 
@@ -85,19 +108,21 @@
         const b = rnd(11, a - 10);
         return makeQ("Вычисли: " + a + " − " + b, a - b,
           [a - b + 1, a - b - 1, a - b + 10],
-          "Вычитаем по разрядам: единицы из единиц, десятки из десятков. Ответ: " + (a - b) + ".");
+          "Вычитаем по разрядам: единицы из единиц, десятки из десятков.");
       },
       function () {
         const a = rnd(2, 9), b = rnd(2, 9), c = rnd(1, 9), d = rnd(2, 9);
         const val = a + b * (c + d);
+        const wrongs = [a * b * (c + d), a + b + c + d].filter(function(x) { return x !== val; });
+        if (wrongs.length < 3) wrongs.push(val - 1);
         return makeQ("Найди значение выражения: " + a + " + " + b + " · (" + c + " + " + d + ")", val,
-          [a * b * (c + d), a + b + c + d, val - b],
+          wrongs,
           "Сначала скобки: " + c + " + " + d + " = " + (c + d) + ". Потом умножение: " + b + " · " + (c + d) + " = " + (b * (c + d)) + ". И сложение: " + a + " + " + (b * (c + d)) + " = " + val + ".");
       },
       function () {
         const k1 = rnd(3, 6), m1 = rnd(5, 9), k2 = rnd(2, 4), m2 = rnd(4, 8);
         const total = k1 * m1 + k2 * m2;
-        return makeQ("В магазин привезли " + k1 + " коробки по " + m1 + " кг конфет и " + k2 + " коробки по " + m2 + " кг печенья. Сколько всего килограммов привезли?", total + " кг",
+        return makeQ("В магазин привезли " + k1 + " " + plural(k1, "коробку", "коробки", "коробок") + " по " + m1 + " кг конфет и " + k2 + " " + plural(k2, "коробку", "коробки", "коробок") + " по " + m2 + " кг печенья. Сколько всего килограммов привезли?", total + " кг",
           [(total + 2) + " кг", (total - 3) + " кг", (k1 * m1 * k2 * m2) + " кг"],
           "Конфеты: " + k1 + " × " + m1 + " = " + (k1 * m1) + " кг. Печенье: " + k2 + " × " + m2 + " = " + (k2 * m2) + " кг. Всего: " + (k1 * m1) + " + " + (k2 * m2) + " = " + total + " кг.");
       },
@@ -112,8 +137,10 @@
       function () {
         const l = rnd(6, 15), w = rnd(3, 9);
         const p = (l + w) * 2;
+        let wrongs = [(l * w) + " см", (l + w) + " см", (p + 4) + " см"].filter(function(x) { return x !== p + " см"; });
+        if (wrongs.length < 3) wrongs.push((p + 2) + " см");
         return makeQ("Длина прямоугольника " + l + " см, ширина " + w + " см. Чему равен периметр?", p + " см",
-          [(l * w) + " см", (l + w) + " см", (p + 4) + " см"],
+          wrongs,
           "Периметр = (длина + ширина) × 2. (" + l + " + " + w + ") × 2 = " + p + " см.");
       },
       function () {
@@ -126,8 +153,10 @@
       function () {
         const div = rnd(2, 9), quot = rnd(3, 9);
         const dividend = div * quot;
+        const wrongs = [div + 10, dividend, quot].filter(function(x) { return x !== div; });
+        if (wrongs.length < 3) wrongs.push(div + 1);
         return makeQ("Какое число нужно вставить, чтобы равенство стало верным: " + dividend + " : □ = " + quot + "?", div,
-          [div + 10, dividend, quot],
+          wrongs,
           "Чтобы найти делитель, нужно делимое разделить на частное: " + dividend + " : " + quot + " = " + div + ".");
       },
       function () {
@@ -140,28 +169,34 @@
         const b = rnd(2, 9), times = rnd(2, 9);
         const a = b * times;
         return makeQ("Во сколько раз " + a + " больше, чем " + b + "?", "в " + times + " раз",
-          ["в " + (times + 1) + " раз", "в " + (a - b) + " раз", "в " + (times - 1) + " раз"],
+          ["в " + (times + 1) + " раз", "на " + times + " больше", "на " + (a - b) + " больше"],
           "Делим: " + a + " : " + b + " = " + times + ". Значит, в " + times + " раз.");
       },
       function () {
-        const total = rnd(9, 20) * 10, price = rnd(5, 25), n = rnd(2, 5);
+        const total = rnd(9, 20) * 10, n = rnd(2, 5);
+        const price = rnd(5, Math.floor((total - 10) / n));
         const rest = total - price * n;
-        return makeQ("У Пети было " + total + " рублей. Он купил " + n + " ручки по " + price + " рублей. Сколько рублей у него осталось?", rest + " руб",
-          [(rest + 5) + " руб", (total - price) + " руб", (rest - 3) + " руб"],
+        const w = [rest + 5, total - price, rest - 3].filter(function(x) { return x !== rest; });
+        return makeQ("У Пети было " + total + " рублей. Он купил " + n + " " + plural(n, "ручку", "ручки", "ручек") + " по " + price + " рублей. Сколько рублей у него осталось?", rest + " руб",
+          w.map(function(x) { return x + " руб"; }),
           "Стоимость ручек: " + n + " × " + price + " = " + (price * n) + " руб. Осталось: " + total + " − " + (price * n) + " = " + rest + " руб.");
       },
       function () {
         const price = rnd(9, 30), n1 = rnd(3, 6), n2 = rnd(2, 8);
         const cost = price * n2;
-        return makeQ("За " + n1 + " одинаковых пирожка заплатили " + (price * n1) + " рублей. Сколько стоят " + n2 + " таких пирожков?", cost + " руб",
-          [(cost + 10) + " руб", (cost - price) + " руб", (price * n2 + 5) + " руб"],
+        const w = [cost + 10, cost - price, price * n2 + 5].filter(function(x) { return x !== cost; });
+        if (w.length < 3) w.push(cost + price);
+        return makeQ("За " + n1 + " " + plural(n1, "пирожок", "пирожка", "пирожков") + " заплатили " + (price * n1) + " рублей. Сколько стоят " + n2 + " " + plural(n2, "пирожок", "пирожка", "пирожков") + "?", cost + " руб",
+          w.map(function(x) { return x + " руб"; }),
           "Цена одного: " + (price * n1) + " : " + n1 + " = " + price + " руб. " + n2 + " пирожков: " + price + " × " + n2 + " = " + cost + " руб.");
       },
       function () {
         const step = rnd(3, 15), start = rnd(2, 20);
         const s0 = start, s1 = start + step, s2 = start + 2 * step, s3 = start + 3 * step, s4 = start + 4 * step;
+        const w = [s3 + 1, s3 - step, s3 + step].filter(function(x) { return x !== s3; });
+        if (w.length < 3) w.push(s3 - 1);
         return makeQ("Определи, какое число пропущено: " + s0 + ", " + s1 + ", " + s2 + ", □, " + s4, s3,
-          [s3 + 1, s3 - step, s3 + step],
+          w,
           "Числа увеличиваются на " + step + ": " + s0 + " → " + s1 + " → " + s2 + " → " + s3 + " → " + s4 + ".");
       }
     ];
@@ -293,7 +328,7 @@
       let title;
       if (score >= 12) title = "Главный математический детектив!";
       else if (score >= 8) title = "Опытный счётчик";
-      else title = "Юный помощник УмноКота";
+      else title = "Юный помощник УмнОКота";
       resultText.innerText = title + " Ты набрал " + score + " из 14.";
       document.getElementById('hints-used').innerText = hintsUsed;
     }
