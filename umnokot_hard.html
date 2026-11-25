@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>УмнОКот: Самые хитрые дела 🔥</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI', Verdana, Arial, sans-serif; background:linear-gradient(160deg,#1d2440,#3a2c55); min-height:100vh; color:#2b2b3d; display:flex; justify-content:center; padding:16px; }
+  #app { width:100%; max-width:680px; }
+  .card { background:#fffdf7; border-radius:24px; padding:28px; box-shadow:0 10px 40px rgba(0,0,0,.35); }
+  .header { text-align:center; margin-bottom:18px; }
+  .header .cat { font-size:52px; }
+  .header h1 { font-size:24px; color:#1d2440; margin-top:6px; }
+  .header .sub { font-size:15px; color:#777; margin-top:4px; }
+  .case-info { display:flex; justify-content:space-between; align-items:center; background:#eef3ff; border-radius:14px; padding:10px 16px; margin-bottom:16px; font-size:15px; }
+  .stars span { font-size:20px; }
+  .q-text { font-size:19px; font-weight:bold; line-height:1.5; margin-bottom:14px; }
+  .answers button { display:block; width:100%; padding:14px; margin-bottom:10px; font-size:17px; border:2px solid #d5d9ee; border-radius:14px; background:#fff; cursor:pointer; text-align:left; transition:.15s; color:#2b2b3d; }
+  .answers button:hover { border-color:#5b6bd6; background:#f4f6ff; }
+  .answers button.correct { border-color:#3fae5a; background:#e8f7ee; }
+  .answers button.wrong { border-color:#d65b5b; background:#fdecec; }
+  .answers button:disabled { cursor:default; }
+  .input-row { display:flex; gap:10px; }
+  .input-row input { flex:1; padding:13px; font-size:18px; border:2px solid #d5d9ee; border-radius:14px; }
+  .btn { display:inline-block; padding:13px 26px; font-size:17px; font-weight:bold; border:none; border-radius:14px; cursor:pointer; }
+  .btn-main { background:#5b6bd6; color:#fff; }
+  .btn-hint { background:#ffe9a8; color:#7a5c00; margin-top:10px; }
+  .btn-restart { background:#3fae5a; color:#fff; margin-top:14px; }
+  .hint-box, .explain-box { margin-top:14px; padding:12px 16px; border-radius:12px; font-size:15px; line-height:1.5; }
+  .hint-box { background:#fff8dd; }
+  .explain-box { background:#e8f7ee; }
+  .center { text-align:center; }
+  .big-stars { font-size:44px; letter-spacing:4px; }
+  .progress { height:8px; background:#e4e7f4; border-radius:6px; margin-bottom:16px; overflow:hidden; }
+  .progress div { height:100%; background:#5b6bd6; border-radius:6px; transition:.3s; }
+  .hidden { display:none; }
+  .home-btn { position:fixed; top:18px; left:18px; z-index:999; width:48px; height:48px; border-radius:50%;
+    background:linear-gradient(135deg,#7b2fbf,#a450e0); color:#fff; font-size:22px; text-decoration:none;
+    display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(123,47,191,.4);
+    transition:transform .15s, box-shadow .15s; }
+  .home-btn:hover { transform:translateY(-3px); box-shadow:0 8px 20px rgba(123,47,191,.55); }
+  .flip-word { display:inline-block; font-size:32px; letter-spacing:5px; font-weight:bold; color:#1d2440; background:#eef3ff; padding:10px 22px; border-radius:12px; margin-top:8px; }
+  .flip-a { transform:rotate(180deg); }
+  .flip-b { transform:scaleX(-1); }
+  .flip-c { transform:scaleY(-1); }
+</style>
+</head>
+<body>
+<a class="home-btn" href="index.html" title="На главную — выбрать другое дело">🏠</a>
+<div id="app"><div class="card">
+  <div class="header"><div class="cat">🐱‍🕵️</div><h1>УмнОКот: Самые хитрые дела 🔥</h1><div class="sub">Дело №5 «Самые хитрые дела». ВПР, 4 класс — задания 8–11: то, что западает чаще всего!</div></div>
+  <div id="screen-q">
+    <div class="progress"><div id="prog-bar" style="width:0%"></div></div>
+    <div class="case-info"><span id="q-counter"></span><span class="stars" id="q-stars"></span></div>
+    <div class="q-text" id="q-text"></div>
+    <div class="answers" id="answers"></div>
+    <div id="input-area" class="hidden"><div class="input-row"><input type="text" id="free-input" autocomplete="off" inputmode="numeric"><button class="btn btn-main" onclick="checkFree()">Ответить</button></div></div>
+    <div id="hint-box" class="hint-box hidden"></div>
+    <div id="explain-box" class="explain-box hidden"></div>
+    <div class="center"><button id="btn-hint" class="btn btn-hint" onclick="showHint()">💡 Подсказка УмнОКота</button><button id="btn-next" class="btn btn-main hidden" onclick="nextQ()">Дальше →</button></div>
+  </div>
+  <div id="screen-end" class="hidden center">
+    <div style="font-size:60px;">🏆</div>
+    <div class="big-stars" id="end-stars"></div>
+    <p id="end-msg" style="font-size:18px; margin-top:14px;"></p>
+    <p style="color:#888; margin-top:8px;" id="end-detail"></p>
+    <button class="btn btn-restart" onclick="location.reload()">🔄 Пройти ещё раз</button>
+  </div>
+</div></div>
+<script>
+
+function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function pick(arr) { return arr[rnd(0, arr.length - 1)]; }
+function shuffleArray(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function mk(q, correct, wrongs, hint, ex) {
+  var seen = [String(correct)];
+  var opts = [String(correct)];
+  for (var i = 0; i < wrongs.length && opts.length < 4; i++) {
+    var s = String(wrongs[i]);
+    if (seen.indexOf(s) === -1) { seen.push(s); opts.push(s); }
+  }
+  opts = shuffleArray(opts);
+  return { q: q, options: opts, a: opts.indexOf(String(correct)), hint: hint, ex: ex };
+}
+function numQ(q, ans, hint, ex) {
+  return { q: q, a: [String(ans)], num: true, hint: hint, ex: ex };
+}
+
+// ===== ТИП 8: текстовые задачи =====
+function gJam() {
+  var T = rnd(2, 4), n1 = rnd(2, 6), ans = T * 5 - 2 * n1;
+  if (ans < 1) return gJam();
+  var x1 = 400 * n1, y = T * 1000 - x1;
+  return numQ(T + " кг варенья разложили в банки по 400 г и в банки по 200 г. Банок по 400 г оказалось " + n1 + ". Сколько потребовалось банок по 200 г?", ans,
+    "Переведи килограммы в граммы и найди, сколько варенья ушло в банки по 400 г.",
+    "1) 400 × " + n1 + " = " + x1 + " (г) — в банках по 400 г. 2) " + (T * 1000) + " − " + x1 + " = " + y + " (г) — в банках по 200 г. 3) " + y + " : 200 = " + ans + " банок.");
+}
+function gRun() {
+  var v = pick([[1, 4, 10], [1, 7, 5], [2, 5, 25], [2, 8, 20]]);
+  var D = v[0], k = v[1], ans = v[2], d100 = k * 100, rest = D * 1000 - d100;
+  return numQ("Чтобы сдать нормативы по физкультуре, ученику необходимо пробежать " + k + " раз дистанцию 100 м и ещё несколько раз дистанцию 60 м. Общая дистанция должна равняться " + D + " км. Сколько раз нужно пробежать дистанцию 60 м?", ans,
+    "Переведи километры в метры. Сколько метров уже пробежал ученик по 100-метровкам?",
+    "1) " + k + " × 100 = " + d100 + " (м) — по 100-метровкам. 2) " + (D * 1000) + " − " + d100 + " = " + rest + " (м) — по 60-метровкам. 3) " + rest + " : 60 = " + ans + " раз.");
+}
+function gRail() {
+  var v = pick([[3, 6, 6], [2, 1, 6], [2, 4, 4], [2, 7, 2], [4, 2, 12], [4, 5, 10], [4, 8, 8]]);
+  var L = v[0], s = v[1], ans = v[2], x1 = 20 * s, y = L * 100 - x1;
+  return numQ("Стёпа и Артур собирают прямую железную дорогу длиной " + L + " м. У них есть короткие и длинные детали длиной 20 см и 30 см. Коротких деталей использовали " + s + ". Сколько длинных деталей они использовали?", ans,
+    "Переведи метры в сантиметры и найди длину дороги из коротких деталей.",
+    "1) 20 × " + s + " = " + x1 + " (см) — короткие детали. 2) " + (L * 100) + " − " + x1 + " = " + y + " (см) — длинные детали. 3) " + y + " : 30 = " + ans + " деталей.");
+}
+function gCar() {
+  var v = pick([[10, 13, 5], [8, 12, 6], [6, 11, 7]]);
+  var t1 = v[0], D = v[1], ans = v[2], x1 = t1 * 900, y = D * 1000 - x1;
+  return numQ("Автомобиль ехал " + t1 + " мин и за каждую минуту проезжал 900 м, потом сделал остановку, а потом ехал несколько минут, проезжая за каждую минуту 800 м. Всего он проехал расстояние, равное " + D + " км. За сколько минут он проехал путь после остановки?", ans,
+    "Сначала найди, сколько автомобиль проехал до остановки.",
+    "1) " + t1 + " × 900 = " + x1 + " (м) — до остановки. 2) " + (D * 1000) + " − " + x1 + " = " + y + " (м) — после остановки. 3) " + y + " : 800 = " + ans + " мин.");
+}
+function gBrig() {
+  var s1 = rnd(12, 16) * 5, n1 = rnd(8, 15), a = rnd(8, 16) * 5, n2 = rnd(10, 25);
+  var L = n1 * s1 + a * n2;
+  return numQ("Две бригады выкладывают с двух сторон асфальтовую дорогу длиной " + L + " м. Когда бригады встретились, первая положила " + n1 + " участок по " + s1 + " м каждый, а вторая — " + n2 + " участков одинаковой длины. Участки какой длины кладёт вторая бригада?", a,
+    "Найди, сколько метров положила первая бригада, и вычти из длины дороги.",
+    "1) " + n1 + " × " + s1 + " = " + (n1 * s1) + " (м) — первая бригада. 2) " + L + " − " + (n1 * s1) + " = " + (a * n2) + " (м) — вторая бригада. 3) " + (a * n2) + " : " + n2 + " = " + a + " м.");
+}
+function gBlouse() {
+  var v = pick([[4, 2, 5], [3, 4, 6], [6, 8, 12], [9, 2, 9]]);
+  var n = v[0], a = v[1], F = v[2], x1 = 80 * n, y = F * 100 - x1;
+  return numQ("На пошив одной блузки уходит 80 см ткани, а на пошив одной юбки — 90 см. Из " + F + " м ткани сшили " + n + " блузки и несколько юбок. Сколько сшили юбок?", a,
+    "Переведи метры в сантиметры и найди, сколько ткани ушло на блузки.",
+    "1) 80 × " + n + " = " + x1 + " (см) — на блузки. 2) " + (F * 100) + " − " + x1 + " = " + y + " (см) — на юбки. 3) " + y + " : 90 = " + a + " юбок.");
+}
+function gPastila() {
+  var P1 = rnd(15, 30) * 10, P2 = rnd(8, 20) * 10, n1 = rnd(2, 3), B = rnd(10, 20) * 50;
+  var rem = B - n1 * P1;
+  if (rem < P2) return gPastila();
+  var ans = Math.floor(rem / P2);
+  if (ans < 1) return gPastila();
+  return numQ("Большая упаковка пастилы стоит " + P1 + " рублей, маленькая — " + P2 + " рублей. У маши-хозяйки была одна купюра в " + B + " рублей. Она купила " + n1 + " большие упаковки и столько маленьких, на сколько хватило денег. Сколько маленьких упаковок пастилы она купила?".replace("маши-хозяйки", "Марина"),
+    ans,
+    "Сначала посчитай, сколько потрачено на большие упаковки, потом раздели остаток на цену маленькой.",
+    "1) " + P1 + " × " + n1 + " = " + (P1 * n1) + " (руб.) — за большие. 2) " + B + " − " + (P1 * n1) + " = " + rem + " (руб.) — осталось. 3) " + rem + " : " + P2 + " = " + ans + " (упаковок), сдача " + (rem % P2) + " руб.");
+}
+function gLift() {
+  var C = rnd(40, 60) * 10, n1 = rnd(10, 15), w1 = rnd(4, 6) * 5, n2 = rnd(10, 20), w2 = rnd(3, 5) * 5;
+  var sum = n1 * w1 + n2 * w2;
+  if (sum <= C) return gLift();
+  var ans = sum - C;
+  return numQ("Грузоподъёмность лифта " + C + " кг. В лифт загрузили " + n1 + " коробок с сахарным песком, по " + w1 + " кг в каждой коробке, и " + n2 + " ящиков с подсолнечным маслом, по " + w2 + " кг в каждом ящике. На сколько килограммов будет превышена грузоподъёмность лифта?", ans,
+    "Посчитай вес коробок и вес ящиков по отдельности, сложи и сравни с грузоподъёмностью.",
+    "1) " + w1 + " × " + n1 + " = " + (w1 * n1) + " (кг) — песок. 2) " + w2 + " × " + n2 + " = " + (w2 * n2) + " (кг) — масло. 3) " + (w1 * n1) + " + " + (w2 * n2) + " = " + sum + " (кг) — всего. 4) " + sum + " − " + C + " = " + ans + " кг — превышение.");
+}
+function gDuvet() {
+  var v = pick([[440, 80, 60, 60], [440, 80, 90, 40], [460, 70, 60, 40], [460, 70, 80, 30], [480, 80, 80, 40], [480, 90, 60, 70], [480, 90, 70, 60]]);
+  var d1 = v[0], F = v[1], p = v[2], ans = v[3];
+  var x1 = d1 * 10, y = F * 100 - x1;
+  return numQ("На изготовление одного пододеяльника требуется " + Math.floor(d1 / 100) + " м " + (d1 % 100) + " см полотна, а на одну наволочку — " + p + " см полотна. Всего было израсходовано " + F + " м полотна. Пододеяльников сшили 10 штук. Сколько сшили наволочек?", ans,
+    "Переведи всё в сантиметры и найди, сколько полотна ушло на 10 пододеяльников.",
+    "1) " + d1 + " × 10 = " + x1 + " (см) — на пододеяльники. 2) " + (F * 100) + " − " + x1 + " = " + y + " (см) — на наволочки. 3) " + y + " : " + p + " = " + ans + " наволочек.");
+}
+
+// ===== ТИП 9: закономерности и планирование =====
+function gGarland() {
+  var N = rnd(21, 35), red = 0, i = 0, block = 1, redTurn = true;
+  while (i < N) { var take = Math.min(block, N - i); if (redTurn) red += take; i += take; block++; redTurn = !redTurn; }
+  var c1 = "красных", c2 = "синих";
+  return mk("В новогодней гирлянде " + N + " лампочек. Лампочки идут в таком порядке: одна красная, две синих, три красных, четыре синих и так далее. Сколько всего красных лампочек в гирлянде?", red,
+    [red + 1, red - 1, red + 2],
+    "Расставь блоки: 1-я красная, 2–3-я синие, 4–6-я красные... Складывай блоки, пока не наберёшь " + N + " лампочек.",
+    "Блоки красных: 1 + 3 + 5 + ... — в гирлянде из " + N + " лампочек красных " + red + ".");
+}
+function gRows() {
+  var r1 = rnd(3, 4), R = rnd(7, 9), total = 0;
+  for (var i = 0; i < R; i++) total += (i % 2 === 0 ? r1 : (r1 === 4 ? 3 : 4));
+  return mk("Машины на стоянке стоят в " + R + " рядов: в первом ряду " + r1 + " " + (r1 === 4 ? "машины" : "машины") + ", во втором " + (r1 === 4 ? 3 : 4) + ", в третьем снова " + r1 + " и так далее. Сколько всего машин стоит на стоянке?", total,
+    [total + 1, total - 1, total + 2],
+    "Чередуются " + r1 + " и " + (r1 === 4 ? 3 : 4) + ". Сложи по рядам: " + Array.from({length: R}, (_, i) => (i % 2 === 0 ? r1 : (r1 === 4 ? 3 : 4))).join(" + ") + ".",
+    total + " машин: " + Array.from({length: R}, (_, i) => (i % 2 === 0 ? r1 : (r1 === 4 ? 3 : 4))).join(" + ") + " = " + total + ".");
+}
+function gTribe() {
+  var trios = [["Вова", "Саша", "Игорь", "окуней", "поймал"], ["Маша", "Нина", "Олег", "вёдер груш", "набрала"], ["Федя", "Лена", "Витя", "грибов", "собрал"], ["Наташа", "Света", "Максим", "вёдер картошки", "накопала"]];
+  var t = pick(trios);
+  var A = rnd(12, 20), d = rnd(3, 9), c = rnd(5, 9);
+  if (A <= c + d) return gTribe();
+  var total = 2 * A + 2 * c - d;
+  return numQ(t[0] + " " + t[4] + " " + A + " " + t[3] + ". " + t[2] + " " + t[4] + " на " + d + " " + t[3] + " меньше, чем " + t[0] + " и " + t[1] + " вместе. Один из троих ребят " + t[4] + " " + c + " " + t[3] + ". Сколько всего " + t[3] + " " + t[4] + " ребята?", total,
+    "Проверь оба случая: что будет, если " + c + " " + t[3] + " — у " + t[2] + "? Сложится ли это с условием?",
+    "Если бы " + c + " " + t[3] + " было у " + t[2] + ", то вместе " + t[0] + " и " + t[1] + " собрали бы " + (c + d) + ", а ведь один только " + t[0] + " — уже " + A + ". Не сходится! Значит, " + c + " — у " + t[1] + ". Тогда " + t[2] + ": " + c + " + " + A + " − " + d + " = " + (A + c - d) + ". Всего: " + A + " + " + c + " + " + (A + c - d) + " = " + total + ".");
+}
+function gPass() {
+  var p5 = rnd(4, 6);
+  var corr = [], w1 = [], w2 = [], w3 = [];
+  for (var d = p5 + 2; d <= 9; d++) corr.push(d);
+  for (var d2 = p5 + 1; d2 <= 9; d2++) w1.push(d2);
+  for (var d3 = p5; d3 <= 9; d3++) w2.push(d3);
+  for (var d4 = p5 + 3; d4 <= 9; d4++) w3.push(d4);
+  function setStr(a) { if (a.length === 1) return "только " + a[0]; return a.join(", ").replace(/, (\d+)$/, " и $1"); }
+  var p2 = rnd(1, p5 - 3);
+  return mk("На компьютере установлен пароль из семи цифр. Цифры идут в порядке возрастания: каждая следующая больше предыдущей. Вторая цифра — «" + p2 + "», пятая — «" + p5 + "». Перечисли все цифры, которые могут стоять на седьмом месте.",
+    setStr(corr), [setStr(w1), setStr(w2), setStr(w3)],
+    "На шестом месте цифра больше " + p5 + "-й. А на седьмом — ещё больше.",
+    "После " + p5 + "-й на шестом месте — минимум " + (p5 + 1) + ", значит на седьмом — " + setStr(corr) + ".");
+}
+var plan9 = [
+  mk("Семён приехал в Сыктывкар в понедельник и планирует пробывать там до субботы. Он хочет встретиться с другом, пойти в музей и посетить театр, причём каждому делу он хочет посвятить отдельный день. Музей работает по вторникам и четвергам, спектакли в театре идут только по средам, а друг свободен в среду и четверг. Назовите место, куда пойдёт Семён за день до встречи с другом.", "театр", ["музей", "встреча с другом", "никкуда"],
+    "Встреча с другом может быть только в четверг (среда занята театром? проверь!). Расставь дела по дням.",
+    "Друг свободен в среду и четверг, музей — во вторник и четверг, театр — в среду. Единственный расклад: вторник — музей, среда — театр, четверг — друг. За день до встречи — театр."),
+  mk("Денис Евгеньевич планирует отпуск с 1 по 28 августа. Он хочет за шесть дней сделать ремонт квартиры, двенадцать дней безвыездно быть на даче и десять дней подряд провести на море. На море он может ехать только после того, как закончит все дела на даче. Известно, что 17 августа Денис Евгеньевич был на море. Какого числа он начал ремонт квартиры?", "23 августа", ["22 августа", "1 августа", "12 августа"],
+    "На море ровно 10 дней подряд. 17 августа внутри этих 10 дней. Найди, какие даты занимают море.",
+    "Море — 10 дней подряд, 17 августа внутри. Значит, море — с 13-го по 22-е. Дача — 12 дней до моря: 1–12 августа. Ремонт — с 23 августа.")
+];
+
+// ===== ТИП 11: логика =====
+function gPages() {
+  var N = rnd(99, 187); if (N % 2 === 0) N++;
+  var ans = 9 + (N - 9) / 2;
+  return numQ("При записи номеров страниц в детской книжке было использовано " + N + " цифр (страницы нумеруются с первой). Сколько страниц в книжке?", ans,
+    "Первые 9 страниц — однозначные числа, по одной цифре. Остальные цифры тратятся по две на страницу.",
+    "1) " + N + " − 9 = " + (N - 9) + " (цифр) — на двузначные страницы. 2) " + (N - 9) + " : 2 = " + ((N - 9) / 2) + " (страниц двузначных). 3) 9 + " + ((N - 9) / 2) + " = " + ans + " страниц.");
+}
+function gBufet() {
+  var A = rnd(15, 25), S1 = rnd(40, 56), S2 = 6 * A - S1;
+  if (S2 < 30) return gBufet();
+  return numQ("В школьном буфете две чашки чая, один пирожок и четыре конфеты стоят " + S1 + " руб., а четыре чашки чая, пять пирожков и две конфеты — " + S2 + " руб. Сколько рублей заплатил мальчик за покупку одной чашки чая, одного пирожка и одной конфеты?", A,
+    "Сложи обе покупки и посмотри, сколько всего получилось чашек, пирожков и конфет.",
+    "1) " + S1 + " + " + S2 + " = " + (S1 + S2) + " (руб.) — две покупки. 2) В них чашек: 2 + 4 = 6, пирожков: 1 + 5 = 6, конфет: 4 + 2 = 6. 3) " + (S1 + S2) + " : 6 = " + A + " руб.");
+}
+function gHats() {
+  var K = rnd(1, 9) * 100, M = rnd(1, 9) * 100;
+  if ((K + M) % 3 !== 0) return gHats();
+  var ans = (K + M) / 3;
+  return numQ("Куртка на " + K + " руб. дешевле, чем пять шапок, но на " + M + " руб. дороже, чем две шапки. Сколько стоит шапка?", ans,
+    "Пять шапок стоят на K больше куртки, а две шапки — на M меньше. Значит, три шапки стоят K + M.",
+    "Разница между пятью и двумя шапками — три шапки: " + K + " + " + M + " = " + (K + M) + " (руб.). Значит, шапка стоит " + (K + M) + " : 3 = " + ans + " руб.");
+}
+function gWagons() {
+  var F = rnd(5, 12), k = rnd(3, 6), C = F + 2 * k, ans = F + k;
+  return numQ("В товарном составе много вагонов: цистерны, вагоны с лесом и вагоны с углём. Вагонов с лесом " + F + ", цистерн " + C + ", а вагонов с углём на столько же больше, чем вагонов с лесом, на сколько меньше, чем цистерн. Сколько в этом составе вагонов с углём?", ans,
+    "Уголь стоит ровно посередине между лесом и цистернами.",
+    "Разница между цистернами и лесом: " + C + " − " + F + " = " + (C - F) + ". Уголь посередине: " + F + " + " + (C - F) / 2 + " = " + ans + ".");
+}
+function gTrees() {
+  var p = rnd(8, 18), T = 5 * p;
+  var wrongs = shuffleArray([T + 1, T - 1, T + 2, T - 2, T + 3, T - 3]).slice(0, 3);
+  return mk("Груш в саду в четыре раза меньше, чем вишен. Дети решили посчитать все деревья в саду. У одного получилось " + (T + 1) + " деревьев, у второго — " + wrongs[0] + ", у третьего — " + wrongs[1] + ". Известно, что один из них посчитал верно. Сколько деревьев в саду?",
+    T, wrongs,
+    "Вишен в 4 раза больше груш: груш — 1 часть, вишен — 4 части. Всего 5 частей. Ищи число, которое делится на 5.",
+    "Всего деревьев — 5 равных частей, значит число должно делиться на 5. Из вариантов только " + T + " делится на 5.");
+}
+function gPoly() {
+  var valid = [];
+  for (var V = 22; V <= 45; V++) {
+    var cnt = 0, lastP = 0;
+    for (var h = 1; h <= 4; h++) {
+      var rem = V - 6 * h;
+      if (rem >= 5 && rem % 5 === 0) { cnt++; lastP = rem / 5; }
+    }
+    if (cnt === 1) valid.push([V, lastP]);
+  }
+  var v = pick(valid);
+  return numQ(v[0] === undefined ? "" : ("Андрей вырезал из бумаги несколько пятиугольников и шестиугольников. Всего у вырезанных фигурок " + v[0] + " вершин. Сколько пятиугольников вырезал Андрей?"), v[1],
+    "Перебирай: если шестиугольник один — остаётся " + (v[0] - 6) + " вершин. Делится ли это на 5?",
+    "Перебор: 1 шест. → " + (v[0] - 6) + " вершин (делится на 5? " + ((v[0] - 6) % 5 === 0 ? "да" : "нет") + "), 2 шест. → " + (v[0] - 12) + " (" + ((v[0] - 12) % 5 === 0 ? "да" : "нет") + ")... Единственный расклад: " + v[1] + " пятиугольников и " + ((v[0] - 5 * v[1]) / 6) + " шестиугольник(ов).");
+}
+function gDoll() {
+  var m = rnd(2, 5), k = rnd(1, m - 1), s = rnd(60, 95), D = s + k;
+  return numQ("Света и Маша хотят купить куклу. У Светы есть только монеты достоинством 1 руб., всего у неё " + k + " руб. Ей не хватает до покупки куклы " + s + " руб. У Маши тоже есть деньги, но ей не хватает " + m + " руб. Если девочки сложат свои деньги вместе, им всё равно не хватит. Сколько стоит кукла?", D,
+    "Кукла стоит столько, сколько есть у Светы, плюс то, чего ей не хватает.",
+    "У Светы " + k + " руб., не хватает " + s + " → кукла стоит " + s + " + " + k + " = " + D + " руб. Проверка: у Маши " + (D - m) + " руб. Вместе: " + k + " + " + (D - m) + " = " + (D - (m - k)) + " < " + D + " — всё сходится: вместе не хватает.");
+}
+
+// ===== ТИП 10: перевёртыши =====
+var shopWords = ["ПРОДУКТЫ", "МАГАЗИН", "АПТЕКА", "ПЕКАРНЯ", "ФРУКТЫ", "ИГРУШКИ", "АТЕЛЬЕ", "ОБУВЬ"];
+var flipModes = [["flip-a", "Верхний винт выпал, и табличка на столбе перевернулась. Что теперь написано на табличке?"], ["flip-b", "Мальчик смотрит на прозрачную дверь магазина изнутри. Что написано на двери?"], ["flip-c", "Девочка смотрит в реку и видит отражение вывески. Что написано на вывеске?"]];
+function gFlip() {
+  var word = pick(shopWords);
+  var others = shuffleArray(shopWords.filter(function(w) { return w !== word; })).slice(0, 3);
+  var m = pick(flipModes);
+  var q = { q: m[1] + ' <span class="flip-word ' + m[0] + '">' + word + '</span>', html: true, options: shuffleArray([word].concat(others)), a: -1, hint: "Представь, как буква выглядит в зеркале или вверх ногами. Читай медленно, буква за буквой.", ex: "На самом деле написано: " + word + "." };
+  q.a = q.options.indexOf(word);
+  return q;
+}
+
+function buildQuiz() {
+  var q = [];
+  var t8 = [gJam, gRun, gRail, gCar, gBrig, gBlouse, gPastila, gLift, gDuvet];
+  shuffleArray(t8).slice(0, 3).forEach(function(f) { q.push(f()); });
+  var t9 = [gGarland, gRows, gTribe, gPass];
+  shuffleArray(t9).slice(0, 2).forEach(function(f) { q.push(f()); });
+  shuffleArray(plan9).slice(0, 1).forEach(function(s) { q.push(s); });
+  var t11 = [gPages, gBufet, gHats, gWagons, gTrees, gPoly, gDoll];
+  shuffleArray(t11).slice(0, 3).forEach(function(f) { q.push(f()); });
+  q.push(gFlip());
+ q.push(gFlip());
+  return shuffleArray(q);
+}
+
+const QUESTIONS = buildQuiz();
+
+let idx = 0, score = 0, usedHint = [], locked = false;
+
+function render() {
+  locked = false;
+  const q = QUESTIONS[idx];
+  document.getElementById('prog-bar').style.width = (idx / QUESTIONS.length * 100) + '%';
+  document.getElementById('q-counter').textContent = 'Задание ' + (idx + 1) + ' из ' + QUESTIONS.length;
+  document.getElementById('q-stars').textContent = '⭐'.repeat(score);
+  const qt = document.getElementById('q-text');
+  if (q.html) qt.innerHTML = q.q; else qt.textContent = q.q;
+  document.getElementById('hint-box').classList.add('hidden');
+  document.getElementById('explain-box').classList.add('hidden');
+  document.getElementById('btn-next').classList.add('hidden');
+  document.getElementById('btn-hint').classList.remove('hidden');
+  const ans = document.getElementById('answers');
+  const inp = document.getElementById('input-area');
+  ans.innerHTML = ''; ans.classList.add('hidden'); inp.classList.add('hidden');
+  if (q.options) {
+    ans.classList.remove('hidden');
+    q.options.forEach((o, i) => {
+      const b = document.createElement('button');
+      b.textContent = o;
+      b.onclick = () => check(i, b);
+      ans.appendChild(b);
+    });
+  } else {
+    inp.classList.remove('hidden');
+    document.getElementById('free-input').value = '';
+    setTimeout(() => document.getElementById('free-input').focus(), 50);
+  }
+}
+function normalize(s) { return s.toString().trim().toLowerCase().replace(/ё/g,'е').replace(/\s+/g,' '); }
+function check(i, btn) {
+  if (locked) return; locked = true;
+  const q = QUESTIONS[idx];
+  const buttons = document.querySelectorAll('#answers button');
+  buttons.forEach((b, j) => { b.disabled = true; if (j === q.a) b.classList.add('correct'); });
+  if (i === q.a) { score++; document.getElementById('q-stars').textContent = '⭐'.repeat(score); }
+  else btn.classList.add('wrong');
+  finish(i === q.a);
+}
+function checkFree() {
+  if (locked) return; locked = true;
+  const q = QUESTIONS[idx];
+  const val = document.getElementById('free-input').value;
+  const inp = document.getElementById('free-input');
+  let ok;
+  if (q.num) {
+    const m = val.replace(/,/g, '.').match(/-?\d+(\.\d+)?/);
+    ok = m !== null && Math.abs(parseFloat(m[0]) - parseFloat(q.a[0])) < 1e-9;
+  } else {
+    ok = Array.isArray(q.a) ? q.a.map(normalize).includes(normalize(val)) : normalize(val) === normalize(q.a);
+  }
+  inp.style.borderColor = ok ? '#3fae5a' : '#d65b5b';
+  if (ok) { score++; document.getElementById('q-stars').textContent = '⭐'.repeat(score); }
+  finish(ok);
+}
+function finish(ok) {
+  const q = QUESTIONS[idx];
+  document.getElementById('btn-hint').classList.add('hidden');
+  const ex = document.getElementById('explain-box');
+  ex.textContent = (ok ? '✅ Верно! ' : '❌ Неверно. ') + (q.ex || '');
+  ex.classList.remove('hidden');
+  document.getElementById('btn-next').classList.remove('hidden');
+}
+function showHint() {
+  const q = QUESTIONS[idx];
+  const h = document.getElementById('hint-box');
+  h.textContent = '🐱 УмнОКот шепчет: ' + q.hint;
+  h.classList.remove('hidden');
+  document.getElementById('btn-hint').classList.add('hidden');
+  usedHint[idx] = true;
+}
+function nextQ() {
+  idx++;
+  if (idx < QUESTIONS.length) render();
+  else {
+    document.getElementById('screen-q').classList.add('hidden');
+    document.getElementById('screen-end').classList.remove('hidden');
+    document.getElementById('end-stars').textContent = '⭐'.repeat(score) + '☆'.repeat(QUESTIONS.length - score);
+    let msg;
+    if (score === QUESTIONS.length) msg = 'Феноменально! Самое хитрое дело раскрыто! 🎉';
+    else if (score >= QUESTIONS.length - 2) msg = 'Блестящий сыщик! Задания 8–11 тебе по плечу!';
+    else if (score >= QUESTIONS.length / 2) msg = 'Хорошее начало! Прорешай ещё раз — и будет блеск!';
+    else msg = 'УмнОКот верит в тебя! Загляни в объяснения и попробуй снова.';
+    document.getElementById('end-msg').textContent = msg;
+    document.getElementById('end-detail').textContent = 'Результат: ' + score + ' из ' + QUESTIONS.length + ' звёздочек';
+  }
+}
+render();
+</script>
+</body>
+</html>
