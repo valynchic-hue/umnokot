@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>УмноКот: Литературное чтение 📚</title>
+<title>УмнОКот: Литературное чтение 📚</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:'Segoe UI', Verdana, Arial, sans-serif; background:linear-gradient(160deg,#1d2440,#3a2c55); min-height:100vh; color:#2b2b3d; display:flex; justify-content:center; padding:16px; }
@@ -35,11 +35,17 @@
   .progress { height:8px; background:#e4e7f4; border-radius:6px; margin-bottom:16px; overflow:hidden; }
   .progress div { height:100%; background:#5b6bd6; border-radius:6px; transition:.3s; }
   .hidden { display:none; }
+  .home-btn { position:fixed; top:18px; left:18px; z-index:999; width:48px; height:48px; border-radius:50%;
+              background:linear-gradient(135deg,#7b2fbf,#a450e0); color:#fff; font-size:22px; text-decoration:none;
+              display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(123,47,191,.4);
+              transition:transform .15s, box-shadow .15s; }
+  .home-btn:hover { transform:translateY(-3px); box-shadow:0 8px 20px rgba(123,47,191,.55); }
 </style>
 </head>
 <body>
+<a class="home-btn" href="index.html" title="На главную — выбрать другое дело">🏠</a>
 <div id="app"><div class="card">
-  <div class="header"><div class="cat">🐱‍🕵️</div><h1>УмноКот: Литературное чтение 📚</h1><div class="sub">Дело №3 «Следы на страницах». ВПР, 4 класс — каждое прохождение с новыми заданиями!</div></div>
+  <div class="header"><div class="cat">🐱‍🕵️</div><h1>УмнОКот: Литературное чтение 📚</h1><div class="sub">Дело №3 «Следы на страницах». ВПР, 4 класс — каждое прохождение с новыми заданиями!</div></div>
   <div id="screen-q">
     <div class="progress"><div id="prog-bar" style="width:0%"></div></div>
     <div class="case-info"><span id="q-counter"></span><span class="stars" id="q-stars"></span></div>
@@ -48,7 +54,7 @@
     <div id="input-area" class="hidden"><div class="input-row"><input type="text" id="free-input" autocomplete="off"><button class="btn btn-main" onclick="checkFree()">Ответить</button></div></div>
     <div id="hint-box" class="hint-box hidden"></div>
     <div id="explain-box" class="explain-box hidden"></div>
-    <div class="center"><button id="btn-hint" class="btn btn-hint" onclick="showHint()">💡 Подсказка УмноКота</button><button id="btn-next" class="btn btn-main hidden" onclick="nextQ()">Дальше →</button></div>
+    <div class="center"><button id="btn-hint" class="btn btn-hint" onclick="showHint()">💡 Подсказка УмнОКота</button><button id="btn-next" class="btn btn-main hidden" onclick="nextQ()">Дальше →</button></div>
   </div>
   <div id="screen-end" class="hidden center">
     <div style="font-size:60px;">🏆</div>
@@ -132,10 +138,10 @@ function genChar() {
 }
 var litStatic = [
   mk("Кто из перечисленных — автор басен?","И. А. Крылов",["А. С. Пушкин","Ф. И. Тютчев","А. П. Чехов"],"Басни — короткие истории с моралью о животных.","Басни писал И. А. Крылов: «Ворона и Лисица», «Квартет», «Слон и Моська»."),
-  mk("Что такое мораль басни?","вывод, поучение из басни",["название басни","герой басни","рифма в басни"],"Мораль — главная мысль, урок.","Мораль — это вывод, поучение: как надо себя вести."),
+  mk("Что такое мораль басни?","вывод, поучение из басни",["название басни","герой басни","рифма в басне"],"Мораль — главная мысль, урок.","Мораль — это вывод, поучение: как надо себя вести."),
   mk("Что такое былина?","русская народная песня-сказание о богатырях",["авторская сказка","басня Крылова","рассказ о природе"],"Былина — устное народное творчество.","Былина — русская народная песня-сказание о богатырях, например об Илье Муромце."),
   mk("Кто написал «Сказку о мёртвой царевне и о семи богатырях»?","А. С. Пушкин",["В. Ф. Одоевский","П. П. Ершов","Л. Н. Толстой"],"Эта сказка написана в стихах.","Автор — А. С. Пушкин."),
-  mk("Чему учит басня «Лебедь, Щука и Рак»?","дружному согласию в деле",["экономии денег","вежливости","осторожности в лесу"],"Вспомни финал: воз не сдвинулся.","Вывод: «Когда товарищей нет, на лад их дело не пойдёт» — без согласия ничего не выйдет."),
+  mk("Чему учит басня «Лебедь, Щука и Рак»?","дружному согласию в деле",["экономии денег","вежливости","осторожности в лесу"],"Вспомни финал: воз не сдвинулся.","Вывод: «Когда в товарищах согласья нет, на лад их дело не пойдёт» — без согласия ничего не выйдет."),
   mk("Кто автор «Сивки-Бурки»?","это русская народная сказка",["А. С. Пушкин","П. П. Ершов","К. И. Чуковский"],"Народные сказки передавались из уст в уста — автора нет.","«Сивка-Бурка» — русская народная сказка, у неё нет автора."),
   mk("Кто написал «Кукушку и Петуха» и «Ларчик»?","И. А. Крылов",["Л. Н. Толстой","А. П. Чехов","Н. А. Некрасов"],"Это тоже басни.","Это басни И. А. Крылова."),
   mk("Чем стихотворение отличается от рассказа?","делится на строки и часто есть рифма",["в нём нет героев","оно всегда длиннее","в нём нет событий"],"Посмотри, как напечатан текст.","Стихотворение записано строками и часто рифмуется, рассказ — сплошным текстом."),
@@ -217,7 +223,7 @@ function finish(ok) {
 function showHint() {
   const q = QUESTIONS[idx];
   const h = document.getElementById('hint-box');
-  h.textContent = '🐱 УмноКот шепчет: ' + q.hint;
+  h.textContent = '🐱 УмнОКот шепчет: ' + q.hint;
   h.classList.remove('hidden');
   document.getElementById('btn-hint').classList.add('hidden');
   usedHint[idx] = true;
@@ -233,7 +239,7 @@ function nextQ() {
     if (score === QUESTIONS.length) msg = 'Феноменально! Все звёзды твои! 🎉';
     else if (score >= QUESTIONS.length - 2) msg = 'Отличный сыщик! ВПР тебе по плечу!';
     else if (score >= QUESTIONS.length / 2) msg = 'Хорошее начало! Прорешай ещё раз — и будет блеск!';
-    else msg = 'УмноКот верит в тебя! Загляни в объяснения и попробуй снова.';
+    else msg = 'УмнОКот верит в тебя! Загляни в объяснения и попробуй снова.';
     document.getElementById('end-msg').textContent = msg;
     document.getElementById('end-detail').textContent = 'Результат: ' + score + ' из ' + QUESTIONS.length + ' звёздочек';
   }
